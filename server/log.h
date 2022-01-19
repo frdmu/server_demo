@@ -52,29 +52,46 @@ class Logger {
         std::list<LogAppender::ptr> m_appenders;
 };
 
+class LogFormatter {
+    public:
+        typedef std::shared_ptr<LogFormatter> ptr;
+        LogFormatter() = default;
+        std::string format(LogEvent::ptr event); // to do
+    private:
+};
+
+
 class LogAppender {
     public:
         typedef std::shared_ptr<LogAppender> ptr;
         LogAppender() = default;
         virtual ~LogAppender() {}
-    private:
+
+        virtual void log(LogLevel::Level level, LogEvent::ptr event) = 0; // 如果level >= m_level，就输出
+        void setFormatter(LogFormatter::ptr val) {m_formatter = val;}
+        LogFormatter::ptr getFormatter() const {return m_formatter;}
+    protected:
         Loglevel::Level m_level;
+        LogFormatter::ptr m_formatter;
 };
 
-class LogFormatter {
+
+class StdoutLogAppender: public LogAppender {
     public:
-        typedef std::shared_ptr<LogFormatter> ptr;
-        LogFormatter() = default;
-        std::string formatter(LogEvent::ptr event); // to do
+        typedef std::shared_ptr<StdoutLogAppender> ptr;
+        void log(LogLevel::Level level, LogEvent::ptr event) override; // 如果level >= m_level，就输出
+};
+
+class FileLogAppender: public LogAppender {
+    public:
+        typedef std::shared_ptr<FileLogAppender> ptr;
+        FileLogAppender() = default; 
+        FileLogAppender(const string &filename):m_filename(filename) {}
+        void log(LogLevel::Level level, LogEvent::ptr event) override; // 如果level >= m_level，就输出
+        void reopen();
     private:
-};
-
-class StdoutLogAppender(): public LogAppender {
-    
-};
-
-class FileLogAppender(): public LogAppender {
-
+        std::string m_filename;
+        std::fstream m_fstrm;
 };
 
 #endif

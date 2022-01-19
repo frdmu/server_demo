@@ -1,4 +1,6 @@
 #include "log.h"
+#include <iostream>
+#include <fstream>
 
 Logger::Logger(const std::string &name):m_name(name) {}
 
@@ -38,3 +40,22 @@ void Logger::delAppender(LogAppender::ptr appender) {
     }
 }
 
+void StdoutLogAppender::log(LogLevel::Level level, LogEvent::ptr event) {
+    if (level >= m_level) {
+        std::cout << m_formatter->format(event);
+    }
+}
+
+bool FileLogAppender::reopen() {
+    if (m_fstrm.is_open()) {
+        m_fstrm.close();
+    }
+    m_fstrm.open(m_filename);
+    return !!m_fstrm;
+}
+void FileLogAppender::log(LogLevel::Level level, LogEvent::ptr event) {
+    if (level >= m_level) {
+        if (reopen()) 
+            m_fstrm << m_formatter->format(event);
+    }
+}
