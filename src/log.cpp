@@ -137,3 +137,19 @@ void LogFormatter::init() {
         std::cout << std::get<0>(t) << " " << std::get<1>(t) << " " << std::get<2>(t) << std::endl;
     }
 }
+
+
+
+static std::string LogLevel::toString(LogLevel::Level level) {
+    switch (level) {
+#define xx(level) \
+        case level: \
+            return #level;
+
+        xx(DEBUG);
+        xx(INFO);
+        xx(WARN);
+        xx(ERROR);
+        xx(FATAL);
+    }
+}

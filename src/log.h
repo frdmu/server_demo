@@ -14,6 +14,7 @@ class LogLevel {
             ERROR = 4,
             FATAL = 5
         };
+        static std::string toString(LogLevel::Level level);
 };
 
 class LogEvent {
@@ -21,6 +22,11 @@ class LogEvent {
         typedef std::shared_ptr<LogEvent> ptr; 
         LogEvent() = default; 
         std::string getFilename() const {return m_filename;}
+        uint32_t getLine() const {return m_line;}
+        uint32_t getThreadid() const {return m_threadId;}
+        uint32_t getFiberid() const {return m_fiberId;}
+        uint32_t getElapse() const {return m_elapse;}
+        uint64_t getDate() const {return m_timeStamp;} // to do
     private:
         std::string m_filename;  
         uint32_t m_line;
@@ -56,7 +62,9 @@ class LogFormatterItem {
     public:
         typedef std::shared_ptr<LogFormatterItem> ptr;
         LogFormatterItem() = default;
-        virtual void format(ostream &os, Logevent::ptr event) = 0;
+        virtual void format(ostream &os, LogEvent::ptr event) = 0;
+        virtual void format(ostream &os, Logger::ptr logger) = 0; // to do
+        virtual void format(ostream &os, LogLevel::Level level) = 0;
     private:
 }
 
@@ -86,9 +94,60 @@ class FilenameLogFormatterItem: public LogFormatterItem {
     public:
         typedef std::shared_ptr<FilenameLogFormatterItem> ptr;
         FilenameLogFormatterItem() = default;
-        void format(ostream &os, Logevent::ptr event) const {os << event->getFilaname();}
+        void format(ostream &os, LogEvent::ptr event) const {os << event->getFilaname();}
+};
+class LineLogFormatterItem: public LogFormatterItem {
+    public:
+        typedef std::shared_ptr<LineLogFormatterItem> ptr;
+        LineLogFormatterItem() = default;
+        void format(ostream &os, LogEvent::ptr event) const {os << event->getLine();}
+};
+class ThreadidLogFormatterItem: public LogFormatterItem {
+    public:
+        typedef std::shared_ptr<ThreadidFormatterItem> ptr;
+        ThreadidLogFormatterItem() = default;
+        void format(ostream &os, LogEvent::ptr event) const {os << event->getThreadid();}
+};
+class FiberidLogFormatterItem: public LogFormatterItem {
+    public:
+        typedef std::shared_ptr<FiberidFormatterItem> ptr;
+        FiberidLogFormatterItem() = default;
+        void format(ostream &os, LogEvent::ptr event) const {os << event->getFiberid();}
+};
+class ElapseLogFormatterItem: public LogFormatterItem {
+    public:
+        typedef std::shared_ptr<ElapseFormatterItem> ptr;
+        ElapseLogFormatterItem() = default;
+        void format(ostream &os, LogEvent::ptr event) const {os << event->getElapse();}
 };
 
+class DateLogFormatterItem: public LogFormatterItem {
+    public:
+        typedef std::shared_ptr<DateFormatterItem> ptr;
+        DateLogFormatterItem() = default;
+        void format(ostream &os, Logevent::ptr event) const {os << event->getDate();}
+};
+
+class MessageLogFormatterItem: public LogFormatterItem {
+    public:
+        typedef std::shared_ptr<MessageFormatterItem> ptr;
+        MessageLogFormatterItem() = default;
+        void format(ostream &os, Logger::ptr logger) const {os << "logger->getMessage(), to do";} // to do
+};
+
+class NewlineLogFormatterItem: public LogFormatterItem {
+    public:
+        typedef std::shared_ptr<NewlineFormatterItem> ptr;
+        NewlineLogFormatterItem() = default;
+        void format(ostream &os, LogEvent::ptr event) const {os << std::endl;}
+};
+
+class LevelLogFormatterItem: public LogFormatterItem {
+    public:
+        typedef std::shared_ptr<LevelFormatterItem> ptr;
+        LevelLogFormatterItem() = default;
+        void format(ostream &os, LogLevel::Level level) const {os << LogLevel::toString(level);} // to do
+};
 // %m %d{y-m-d h-m-s} %t -> m_items
 class LogFormatter {
     public:

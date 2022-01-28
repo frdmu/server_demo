@@ -13,4 +13,9 @@ log(level, event)会在子类中被重载,
 做的事：在不同子类中具体实现Logger中的log函数
 ie: LogAppender.log(level, event) -> LogFormatter.format( event)
 ### LogFormatter
+
+
 #### 1.为什么只处理等级比自己大的情况？
+
+
+debug(event) -> log(level, event) -> appender.log(level, event) -> logformatter.format(event) -> logformatteritem.format(os, event) 
