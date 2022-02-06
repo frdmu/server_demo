@@ -7,7 +7,17 @@
 #include <memory>
 #include <functional>
 #include <map>
+#include <time.h>
+#include <string>
 namespace frdmu {
+    // YYYY-MM-DD HH-mm-ss to do
+    std::string LogEvent::getDate(std::string fmt) {
+        // fmt 
+        struct tm time_now;
+        localtime_r(&m_timeStamp, &time_now);
+        
+        return std::to_string(time_now.tm_year+1900) + "-"  + std::to_string(time_now.tm_mon+1) + "-" + std::to_string(time_now.tm_mday) + " " + std::to_string(time_now.tm_hour) + ":" + std::to_string(time_now.tm_min) + ":" + std::to_string(time_now.tm_sec);
+    }
     // 如果level >= m_level，就输出
     void Logger::log(LogLevel::Level level, LogEvent::ptr event) {
         if (level >= m_level) {
@@ -94,7 +104,7 @@ namespace frdmu {
     // set m_items
     // %xxx %xxx{xxx} %%
     // (str fmt flag)
-    // m_pattern: hello log: %d{yyy-MM-dd HH:mm:ss} %p %filename %l %t %fiberid %r %m end log!%n
+    // m_pattern: hello log: %d{YYYY-MM-DD HH:mm:ss} %p %filename %l %t %fiberid %r %m end log!%n
     void LogFormatter::init() {
         // parse done
         size_t n = m_pattern.size();

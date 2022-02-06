@@ -7,6 +7,7 @@
 #include <fstream>
 #include <vector>
 #include <iostream>
+#include <time.h>
 namespace frdmu {
     class LogLevel {
         public:
@@ -30,7 +31,7 @@ namespace frdmu {
             uint32_t getThreadid() const {return m_threadId;}
             uint32_t getFiberid() const {return m_fiberId;}
             uint32_t getElapse() const {return m_elapse;}
-            uint64_t getDate() const {return m_timeStamp;} // to do
+            std::string getDate(std::string fmt); // to do
             std::string getContent() const {return m_content;}
         private:
             std::string m_filename;  
@@ -38,7 +39,7 @@ namespace frdmu {
             uint32_t m_threadId;
             uint32_t m_fiberId;       // 协程号
             uint32_t m_elapse;        // 程序启动到现在的毫秒数
-            uint64_t m_timeStamp;
+            time_t m_timeStamp;
             std::string m_content;
     };
 
@@ -46,8 +47,11 @@ namespace frdmu {
     class LogFormatterItem {
         public:
             typedef std::shared_ptr<LogFormatterItem> ptr;
-            //LogFormatterItem() = default;
+            LogFormatterItem() = default;
+            LogFormatterItem(std::string fmt): m_fmt(fmt) {}
             virtual void format(std::ostream &os, std::shared_ptr<Logger> logger, LogLevel::Level level, LogEvent::ptr event) = 0;
+        protected:
+            std::string m_fmt;
     };
 
     // %m %d{y-m-d h-m-s} %t -> m_items
@@ -74,7 +78,7 @@ namespace frdmu {
             //LogFormatter::ptr getFormatter() const {return m_formatter;}
         protected:
             LogLevel::Level m_level;
-            LogFormatter::ptr m_formatter = LogFormatter::ptr(new LogFormatter("[%p] %r %d{yyy-MM-dd HH:mm:ss} : %filename %l %t %fiberid message:%m %n"));
+            LogFormatter::ptr m_formatter = LogFormatter::ptr(new LogFormatter("[%p] %r(ms) %d{YYYY-MM-DD HH:mm:ss} -> %filename %l(row) %t %fiberid message:%m %n"));
     };
 
     class Logger : public std::enable_shared_from_this<Logger> {
@@ -135,50 +139,40 @@ namespace frdmu {
         public:
             typedef std::shared_ptr<FilenameLogFormatterItem> ptr;
             //FilenameLogFormatterItem() = default;
-            FilenameLogFormatterItem(std::string fmt): m_fmt(fmt) {}
+            FilenameLogFormatterItem(std::string fmt): LogFormatterItem(fmt) {}
             void format(std::ostream &os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {os << event->getFilename();}
-        private:
-            std::string m_fmt;
     };
 
     class LineLogFormatterItem: public LogFormatterItem {
         public:
             typedef std::shared_ptr<LineLogFormatterItem> ptr;
             //LineLogFormatterItem() = default;
-            LineLogFormatterItem(std::string fmt): m_fmt(fmt) {}
+            LineLogFormatterItem(std::string fmt): LogFormatterItem(fmt) {}
             void format(std::ostream &os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {os << event->getLine();}
-        private:
-            std::string m_fmt;
     };
 
     class ThreadidLogFormatterItem: public LogFormatterItem {
         public:
             typedef std::shared_ptr<ThreadidLogFormatterItem> ptr;
             //ThreadidLogFormatterItem() = default;
-            ThreadidLogFormatterItem(std::string fmt): m_fmt(fmt) {}
+            ThreadidLogFormatterItem(std::string fmt): LogFormatterItem(fmt) {}
             void format(std::ostream &os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {os << event->getThreadid();}
-        private:
-            std::string m_fmt;
     };
 
     class FiberidLogFormatterItem: public LogFormatterItem {
         public:
             typedef std::shared_ptr<FiberidLogFormatterItem> ptr;
             //FiberidLogFormatterItem() = default;
-            FiberidLogFormatterItem(std::string fmt): m_fmt(fmt) {}
+            FiberidLogFormatterItem(std::string fmt): LogFormatterItem(fmt) {}
             void format(std::ostream &os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {os << event->getFiberid();}
-        private:
-            std::string m_fmt;
     };
 
     class ElapseLogFormatterItem: public LogFormatterItem {
         public:
             typedef std::shared_ptr<ElapseLogFormatterItem> ptr;
             //ElapseLogFormatterItem() = default;
-            ElapseLogFormatterItem(std::string fmt): m_fmt(fmt) {}
+            ElapseLogFormatterItem(std::string fmt): LogFormatterItem(fmt) {}
             void format(std::ostream &os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {os << event->getElapse();}
-        private:
-            std::string m_fmt;
     };
 
     // to do fmt
@@ -186,40 +180,32 @@ namespace frdmu {
         public:
             typedef std::shared_ptr<DateLogFormatterItem> ptr;
             //DateLogFormatterItem() = default;
-            DateLogFormatterItem(std::string fmt): m_fmt(fmt) {}
-            void format(std::ostream &os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {os << event->getDate();}
-        private:
-            std::string m_fmt;
+            DateLogFormatterItem(std::string fmt): LogFormatterItem(fmt) {}
+            void format(std::ostream &os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {os << event->getDate(m_fmt);}
     };
 
     class MessageLogFormatterItem: public LogFormatterItem {
         public:
             typedef std::shared_ptr<MessageLogFormatterItem> ptr;
             //MessageLogFormatterItem() = default;
-            MessageLogFormatterItem(std::string fmt): m_fmt(fmt) {}
+            MessageLogFormatterItem(std::string fmt): LogFormatterItem(fmt) {}
             void format(std::ostream &os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {os << event->getContent();} 
-        private:
-            std::string m_fmt;
     };
 
     class NewlineLogFormatterItem: public LogFormatterItem {
         public:
             typedef std::shared_ptr<NewlineLogFormatterItem> ptr;
             //NewlineLogFormatterItem() = default;
-            NewlineLogFormatterItem(std::string fmt): m_fmt(fmt) {}
+            NewlineLogFormatterItem(std::string fmt): LogFormatterItem(fmt) {}
             void format(std::ostream &os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {os << std::endl;} 
-        private:
-            std::string m_fmt;
     };
 
     class LevelLogFormatterItem: public LogFormatterItem {
         public:
             typedef std::shared_ptr<LevelLogFormatterItem> ptr;
             //LevelLogFormatterItem() = default;
-            LevelLogFormatterItem(std::string fmt): m_fmt(fmt) {}
+            LevelLogFormatterItem(std::string fmt): LogFormatterItem(fmt) {}
             void format(std::ostream &os, Logger::ptr logger, LogLevel::Level level, LogEvent::ptr event) override {os << LogLevel::toString(level);} 
-        private:
-            std::string m_fmt;
     };
 
     class StdoutLogAppender: public LogAppender {
