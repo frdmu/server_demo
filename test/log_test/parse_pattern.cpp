@@ -18,7 +18,7 @@ void init(const std::string &m_pattern) {
         }
         // %%
         if (i+1 < n && m_pattern[i+1] == '%') {
-            vec.push_back(std::make_tuple("%", "", 0));
+            vec.push_back(std::make_tuple("%", "", 1));
             continue;
         }
 
@@ -53,9 +53,9 @@ void init(const std::string &m_pattern) {
             if (str.empty() && j == n) {
                 str = m_pattern.substr(i+1, n-i-1);
             }
-            vec.push_back(std::make_tuple(str, "", 0));
+            vec.push_back(std::make_tuple(str, "", 1));
         } else if (fmt_status == 1) {
-            vec.push_back(std::make_tuple(str, fmt, 0));
+            vec.push_back(std::make_tuple(str, fmt, 2));
         }
     }
 
