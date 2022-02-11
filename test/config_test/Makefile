@@ -1,10 +1,5 @@
-TARGET := config_test
-LIBS := libconfig.so
-SOURCE := config_test.cpp
-
-$(TARGET): $(SOURCE) $(LIBS) 
-	$(CXX) $(SOURCE) -I../../src/ -lconfig -L./ -o $@ 
-$(LIBS):
-	$(CXX) ../../src/config.cpp -c -I../../src/ -fPIC -shared -o $@ 
+yaml_parser_test: yaml_parser_test.cpp
+	$(CXX) $^ -lyaml-cpp -L/usr/local/lib/ -o $@
 clean:
-	$(RM) $(LIBS) $(TARGET) 
+	$(RM) yaml_parser_test
+ 
