@@ -13,7 +13,7 @@ namespace frdmu {
             ConfigVarBase() = default;
             ConfigVarBase(const std::string &name, const std::string &description = ""): m_name(name), m_description(description) {}
             virtual std::string toString() = 0;
-            virtual void fromString(std::string &val) = 0;
+            virtual void fromString(const std::string val) = 0;
         protected:
             std::string m_name;
             std::string m_description;
@@ -29,7 +29,7 @@ namespace frdmu {
             std::string toString() override{
                 return boost::lexical_cast<std::string>(m_val);
             } 
-            void fromString(std::string &val) override {
+            void fromString(const std::string val) override {
                 m_val = boost::lexical_cast<T>(val);
             }
             void print() {
@@ -68,6 +68,8 @@ namespace frdmu {
 
                 return tmp_ptr;
             }
+            static ConfigVarBase::ptr lookup(const std::string &name);
+            static void loadFromYaml(const std::string &configFilename); 
         private:
             static ConfMap m_conf_map;
     };
